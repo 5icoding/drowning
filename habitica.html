@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habitica风格任务管理系统</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+    
+    /* 角色信息 - 横向布局 */
+    .character-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .character-info {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    .avatar {
+      width: 100px;
+      height: 100px;
+      background: #3498db;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2.5rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .character-details {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .level {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .stats {
+      display: flex;
+      gap: 30px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+    
+    .xp-container {
+      flex-grow: 1;
+      max-width: 400px;
+    }
+    
+    .xp-bar {
+      height: 10px;
+      background: #ecf0f1;
+      border-radius: 5px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .xp-progress {
+      height: 100%;
+      background: linear-gradient(to right, #3498db, #2ecc71);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    
+    /* 任务卡片四列布局 */
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card-icon {
+      color: #3498db;
+    }
+    
+    .btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    
+    .btn:hover {
+      background: #2980b9;
+    }
+    
+    .task-list {
+      list-style: none;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+    
+    .task-item {
+      background: white;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    
+    .task-item:hover {
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .task-info {
+      flex-grow: 1;
+    }
+    
+    .task-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .task-desc {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+    
+    .task-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 5px;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+    
+    .complete-btn {
+      color: #2ecc71;
+    }
+    
+    .complete-btn:hover {
+      background: rgba(46, 204, 113, 0.1);
+    }
+    
+    .edit-btn {
+      color: #f39c12;
+    }
+    
+    .edit-btn:hover {
+      background: rgba(243, 156, 18, 0.1);
+    }
+    
+    .delete-btn {
+      color: #e74c3c;
+    }
+    
+    .delete-btn:hover {
+      background: rgba(231, 76, 60, 0.1);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+    
+    /* 对话框样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      color: #2c3e50;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    
+    .close-btn:hover {
+      color: #e74c3c;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .cancel-btn {
+      background: #95a5a6;
+    }
+    
+    .cancel-btn:hover {
+      background: #7f8c8d;
+    }
+    
+    footer {
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 30px 0;
+      border-radius: 15px;
+      margin-top: 40px;
+    }
+    
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .footer-section h3 {
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 8px;
+    }
+    
+    .footer-links a {
+      color: #ddd;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .footer-links a:hover {
+      color: white;
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    @media (max-width: 1200px) {
+      .tasks-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .character-card {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .character-info {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .stats {
+        justify-content: center;
+      }
+      
+      .tasks-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .footer-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <header>
+        <h1>SPIDIKY GEN SALE!</h1>
+        <p class="subtitle">Get extra beans with each purchase!</p>
+      </header>
+      
+      <!-- 角色信息 - 横向布局 -->
+      <div class="character-card">
+        <div class="character-info">
+          <div class="avatar">
+            <i class="fas fa-dragon"></i>
+          </div>
+          <div class="character-details">
+            <div class="level">等级 {{ level }}</div>
+            <div class="stats">
+              <div class="stat-item">
+                <div class="stat-value">{{ xp }}</div>
+                <div class="stat-label">经验值</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ gold }}</div>
+                <div class="stat-label">金币</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ completedTasks }}</div>
+                <div class="stat-label">完成任务</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="xp-container">
+          <p>距离下一级还需: {{ xpToNextLevel - xp }} XP</p>
+          <div class="xp-bar">
+            <div class="xp-progress" :style="{ width: xpProgress + '%' }"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 任务卡片 - 四列布局 -->
+      <div class="tasks-grid">
+        <!-- 习惯卡片 -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-redo-alt card-icon"></i> 习惯</h2>
+            <button class="btn" @click="openModal('habit')">
+              <i class="fas fa-plus"></i> 添加
+            </button>
+          </div>
+          <p class="task-desc">习惯没有严格的习惯限制，你可以每天多次完成它们。</p>
+          
+          <ul class="task-list">
+            <li v-for="(habit, index) in habits" :key="index" class="task-item">
+              <div class="task-info">
+                <div class="task-title">{{ habit.title }}</div>
+                <div class="task-desc">{{ habit.description }}</div>
+              </div>
+              <div class="task-actions">
+                <button class="action-btn complete-btn" @click="completeHabit(index)" title="完成习惯">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="action-btn edit-btn" @click="editHabit(index)" title="编辑习惯">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" @click="deleteHabit(index)" title="删除习惯">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </li>
+            <li v-if="habits.length === 0" class="empty-state">
+              还没有习惯，添加一个开始吧！
+            </li>
+          </ul>
+        </div>
+        
+        <!-- 日常任务卡片 -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-calendar-day card-icon"></i> 日常任务</h2>
+            <button class="btn" @click="openModal('daily')">
+              <i class="fas fa-plus"></i> 添加
+            </button>
+          </div>
+          <p class="task-desc">日常任务会定期重复，请制定一个适合自己的日程表！</p>
+          
+          <ul class="task-list">
+            <li v-for="(daily, index) in dailies" :key="index" class="task-item">
+              <div class="task-info">
+                <div class="task-title">{{ daily.title }}</div>
+                <div class="task-desc">{{ daily.description }}</div>
+              </div>
+              <div class="task-actions">
+                <button class="action-btn complete-btn" @click="completeDaily(index)" title="完成任务">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="action-btn edit-btn" @click="editDaily(index)" title="编辑任务">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" @click="deleteDaily(index)" title="删除任务">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </li>
+            <li v-if="dailies.length === 0" class="empty-state">
+              还没有日常任务，添加一个开始吧！
+            </li>
+          </ul>
+        </div>
+        
+        <!-- 待办事项卡片 -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-tasks card-icon"></i> 待办事项</h2>
+            <button class="btn" @click="openModal('todo')">
+              <i class="fas fa-plus"></i> 添加
+            </button>
+          </div>
+          <p class="task-desc">将办事的习惯变成一次，在给办事的详细流程中可以提高其价值。</p>
+          
+          <ul class="task-list">
+            <li v-for="(todo, index) in todos" :key="index" class="task-item">
+              <div class="task-info">
+                <div class="task-title">{{ todo.title }}</div>
+                <div class="task-desc">{{ todo.description }}</div>
+              </div>
+              <div class="task-actions">
+                <button class="action-btn complete-btn" @click="completeTodo(index)" title="完成任务">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="action-btn edit-btn" @click="editTodo(index)" title="编辑任务">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" @click="deleteTodo(index)" title="删除任务">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </li>
+            <li v-if="todos.length === 0" class="empty-state">
+              还没有待办事项，添加一个开始吧！
+            </li>
+          </ul>
+        </div>
+        
+        <!-- 奖励卡片 -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title"><i class="fas fa-gift card-icon"></i> 奖励</h2>
+            <button class="btn" @click="openModal('reward')">
+              <i class="fas fa-plus"></i> 添加
+            </button>
+          </div>
+          <p class="task-desc">单位：元/次，奖金：全部以本子付</p>
+          
+          <ul class="task-list">
+            <li v-for="(reward, index) in rewards" :key="index" class="task-item">
+              <div class="task-info">
+                <div class="task-title">{{ reward.title }}</div>
+                <div class="task-desc">{{ reward.description }}</div>
+                <div class="task-desc">价格: {{ reward.cost }} 金币</div>
+              </div>
+              <div class="task-actions">
+                <button class="action-btn complete-btn" @click="purchaseReward(index)" title="购买奖励" :disabled="gold < reward.cost">
+                  <i class="fas fa-shopping-cart"></i>
+                </button>
+                <button class="action-btn edit-btn" @click="editReward(index)" title="编辑奖励">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-btn" @click="deleteReward(index)" title="删除奖励">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </li>
+            <li v-if="rewards.length === 0" class="empty-state">
+              还没有奖励，添加一个开始吧！
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- 添加/编辑任务对话框 -->
+      <div v-if="showModal" class="modal-overlay" @click="closeModal">
+        <div class="modal" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">{{ modalTitle }}</h3>
+            <button class="close-btn" @click="closeModal">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">任务名称</label>
+            <input type="text" v-model="currentTask.title" class="form-input" placeholder="输入任务名称">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">任务描述</label>
+            <input type="text" v-model="currentTask.description" class="form-input" placeholder="输入任务描述">
+          </div>
+          
+          <div v-if="modalType === 'reward'" class="form-group">
+            <label class="form-label">价格 (金币)</label>
+            <input type="number" v-model="currentTask.cost" class="form-input" placeholder="输入价格">
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn cancel-btn" @click="closeModal">取消</button>
+            <button class="btn" @click="saveTask">{{ editingIndex >= 0 ? '更新' : '添加' }}</button>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>产品</h3>
+            <ul class="footer-links">
+              <li><a href="#">iOS客户端</a></li>
+              <li><a href="#">安卓客户端</a></li>
+              <li><a href="#">团队计划</a></li>
+              <li><a href="#">如何使用</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>公司</h3>
+            <ul class="footer-links">
+              <li><a href="#">联系我们</a></li>
+              <li><a href="#">媒体资料</a></li>
+              <li><a href="#">博客</a></li>
+              <li><a href="#">新闻</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>社区</h3>
+            <ul class="footer-links">
+              <li><a href="#">社区项目</a></li>
+              <li><a href="#">英雄模型</a></li>
+              <li><a href="#">为Habitca做贡献</a></li>
+              <li><a href="#">翻译Habitca</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>支持</h3>
+            <ul class="footer-links">
+              <li><a href="#">常见问题</a></li>
+              <li><a href="#">提交Blog</a></li>
+              <li><a href="#">请求新功能</a></li>
+              <li><a href="#">钱庄指南</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-section">
+            <h3>开发者</h3>
+            <ul class="footer-links">
+              <li><a href="#">API v3</a></li>
+              <li><a href="#">数据展示工具</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>支持Habitca - Habitca是一个收集用户支持的开源项目</p>
+          <p>© 2025 Habitca. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+    
+    createApp({
+      setup() {
+        // 用户状态
+        const level = ref(5);
+        const xp = ref(120);
+        const gold = ref(50);
+        const completedTasks = ref(23);
+        const xpToNextLevel = computed(() => level.value * 100);
+        const xpProgress = computed(() => (xp.value / xpToNextLevel.value) * 100);
+        
+        // 任务数据
+        const habits = ref([
+          { title: '添加一个习惯', description: '学习大咖工艺>>+练习一项新的创造性技术' }
+        ]);
+        
+        const dailies = ref([
+          { title: '添加一个每日', description: '在创意项目上工作 - 点击以指定时间到目的名称，设定计划！' }
+        ]);
+        
+        const todos = ref([
+          { title: '添加一个待办事项', description: '完成创意性项目 - body开发流程' }
+        ]);
+        
+        const rewards = ref([
+          { title: '添加一个奖励', description: '奖励你自己', cost: 10 }
+        ]);
+        
+        // 对话框状态
+        const showModal = ref(false);
+        const modalType = ref('habit'); // habit, daily, todo, reward
+        const modalTitle = computed(() => {
+          const titles = {
+            habit: '添加习惯',
+            daily: '添加日常任务',
+            todo: '添加待办事项',
+            reward: '添加奖励'
+          };
+          return titles[modalType.value];
+        });
+        
+        const currentTask = ref({ title: '', description: '', cost: 0 });
+        const editingIndex = ref(-1);
+        
+        // 打开对话框
+        const openModal = (type) => {
+          modalType.value = type;
+          currentTask.value = { title: '', description: '', cost: 0 };
+          editingIndex.value = -1;
+          showModal.value = true;
+        };
+        
+        // 关闭对话框
+        const closeModal = () => {
+          showModal.value = false;
+        };
+        
+        // 保存任务
+        const saveTask = () => {
+          if (currentTask.value.title.trim() === '') return;
+          
+          let targetArray;
+          switch (modalType.value) {
+            case 'habit':
+              targetArray = habits.value;
+              break;
+            case 'daily':
+              targetArray = dailies.value;
+              break;
+            case 'todo':
+              targetArray = todos.value;
+              break;
+            case 'reward':
+              targetArray = rewards.value;
+              break;
+          }
+          
+          if (editingIndex.value >= 0) {
+            targetArray[editingIndex.value] = { ...currentTask.value };
+          } else {
+            targetArray.push({ ...currentTask.value });
+          }
+          
+          closeModal();
+        };
+        
+        // 编辑任务
+        const editHabit = (index) => {
+          modalType.value = 'habit';
+          currentTask.value = { ...habits.value[index] };
+          editingIndex.value = index;
+          showModal.value = true;
+        };
+        
+        const editDaily = (index) => {
+          modalType.value = 'daily';
+          currentTask.value = { ...dailies.value[index] };
+          editingIndex.value = index;
+          showModal.value = true;
+        };
+        
+        const editTodo = (index) => {
+          modalType.value = 'todo';
+          currentTask.value = { ...todos.value[index] };
+          editingIndex.value = index;
+          showModal.value = true;
+        };
+        
+        const editReward = (index) => {
+          modalType.value = 'reward';
+          currentTask.value = { ...rewards.value[index] };
+          editingIndex.value = index;
+          showModal.value = true;
+        };
+        
+        // 删除任务
+        const deleteHabit = (index) => {
+          habits.value.splice(index, 1);
+        };
+        
+        const deleteDaily = (index) => {
+          dailies.value.splice(index, 1);
+        };
+        
+        const deleteTodo = (index) => {
+          todos.value.splice(index, 1);
+        };
+        
+        const deleteReward = (index) => {
+          rewards.value.splice(index, 1);
+        };
+        
+        // 完成任务
+        const completeHabit = (index) => {
+          xp.value += 10;
+          gold.value += 5;
+          completedTasks.value += 1;
+          
+          if (xp.value >= xpToNextLevel.value) {
+            level.value += 1;
+            xp.value = 0;
+          }
+        };
+        
+        const completeDaily = (index) => {
+          xp.value += 15;
+          gold.value += 10;
+          completedTasks.value += 1;
+          
+          if (xp.value >= xpToNextLevel.value) {
+            level.value += 1;
+            xp.value = 0;
+          }
+        };
+        
+        const completeTodo = (index) => {
+          xp.value += 20;
+          gold.value += 15;
+          completedTasks.value += 1;
+          
+          if (xp.value >= xpToNextLevel.value) {
+            level.value += 1;
+            xp.value = 0;
+          }
+        };
+        
+        // 购买奖励
+        const purchaseReward = (index) => {
+          const reward = rewards.value[index];
+          if (gold.value >= reward.cost) {
+            gold.value -= reward.cost;
+            alert(`你成功购买了: ${reward.title}`);
+          } else {
+            alert('金币不足，无法购买此奖励！');
+          }
+        };
+        
+        return {
+          level,
+          xp,
+          gold,
+          completedTasks,
+          xpToNextLevel,
+          xpProgress,
+          habits,
+          dailies,
+          todos,
+          rewards,
+          showModal,
+          modalType,
+          modalTitle,
+          currentTask,
+          editingIndex,
+          openModal,
+          closeModal,
+          saveTask,
+          editHabit,
+          editDaily,
+          editTodo,
+          editReward,
+          deleteHabit,
+          deleteDaily,
+          deleteTodo,
+          deleteReward,
+          completeHabit,
+          completeDaily,
+          completeTodo,
+          purchaseReward
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
