@@ -4,7 +4,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玩家任务与成就系统</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link  rel="stylesheet" href="style.css" type="text/css"/>   
+    <link  rel="stylesheet" href="style.css" type="text/css"/> 
+    <script src="data.js"></script> 
 </head>     
 <body>
 <div id="app">
@@ -17,6 +18,20 @@
             <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
             <button @click="solve">解决</button>
             </div>
+            <!-- <div v-if ="isGameLevelCurrentTitle == 'Nothing'">
+                <div>   
+                    
+                </div>
+            </div>   -->
+            <!-- <div v-for = "item in isGameLevel.content">
+                <div>   
+                    <div v-if ="item.type == 'titleTask'">
+                        <span>{{item.title}}</span> 
+                        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <button @click="solve">解决</button>    
+                 </div>
+            </div>   -->
+
             
         </div>
         <div id="right-panel">
@@ -44,36 +59,6 @@
 </div>
 </body>
 <script>
-    Nothing_level={
-        "count": 4,
-        "content":{
-            "1": {
-                "level": 1,
-                "title":"空无一物",
-                "resourse":"Hope",
-                "operation":"+0"
-            },
-            "2": {
-                "level": 2, 
-                "title":"你尚未存在 +希望",
-                "resourse":"Hope",
-                "operation":"+1"
-            },
-            "3": {
-                "level": 3,
-                "title":"你开始形成 +身体",
-                "resourse":"Body",
-                "operation":"+1"      
-            },
-            "4": {
-                "level": 4,
-                "title":"你存在了 +生命",
-                "resourse":"Life",
-                "operation":"+1"
-            }
-        }
-    }
-
     solve_str = "<button id='solve' @click='solve'>解决</button>";
     const app = Vue.createApp({ 
         data() {
@@ -95,12 +80,14 @@
         },
         methods: {
             judgment() {
-                resourse = this.isGameLevel.content[this.isGameLevelCurrent.toString()].resourse
+                resourse = this.isGameLevel.data[this.isGameLevelCurrent.toString()].resourse
                 console.log(resourse)
-                operation = this.isGameLevel.content[this.isGameLevelCurrent.toString()].operation
+                operation = this.isGameLevel.data[this.isGameLevelCurrent.toString()].operation
                 eval("this."+ resourse + "= " +"this." +resourse +operation) 
                 this.isGameLevelCurrent++;
-                //this.Hope += 1
+                if(this.isGameLevelCurrent > this.isGameLevel.count) {
+                    this.isGameLevelCurrent = 1
+                }
                 
             },
             solve() {
@@ -112,7 +99,7 @@
                 // 游戏时间递增
                 this.gameTime++;
                 this.isGameLevelCount = this.isGameLevel.count
-                this.isGameLevelCurrentTitle = this.isGameLevel.content[this.isGameLevelCurrent.toString()].title
+                this.isGameLevelCurrentTitle = this.isGameLevel.data[this.isGameLevelCurrent.toString()].title
                 
                 //document.getElementById("left-panel").innerHTML = doStr
                 console.log(this.gameTime+" "+this.isGameLevelCurrentTitle)
