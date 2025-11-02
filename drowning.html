@@ -1,1160 +1,129 @@
-<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人生模拟器 | Life Simulator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .language-selector {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .lang-btn.active {
-            background: #4facfe;
-        }
-        
-        .stage-indicator {
-            font-size: 1.2rem;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-        }
-        
-        .content {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .panel {
-            flex: 1;
-            min-width: 300px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        .panel h2 {
-            margin-bottom: 15px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 10px;
-            font-size: 1.5rem;
-        }
-        
-        .action-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .action-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .action-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .action-description {
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            line-height: 1.4;
-        }
-        
-        .btn {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .progress-container {
-            margin-top: 10px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-        
-        .resources {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .resource-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .resource-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
-        }
-        
-        .resource-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .resource-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #4facfe;
-        }
-        
-        .can-afford {
-            color: #00f2fe;
-            font-weight: bold;
-        }
-        
-        .cannot-afford {
-            color: #ff6b6b;
-            font-weight: bold;
-        }
-        
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.5s ease;
-        }
-        
-        .notification.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .events-panel {
-            width: 100%;
-            max-height: 300px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        .events-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .event-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            border-left: 3px solid #4facfe;
-        }
-        
-        .event-time {
-            color: #4facfe;
-            font-size: 0.8rem;
-            margin-bottom: 3px;
-        }
-        
-        .event-action {
-            font-weight: bold;
-        }
-        
-        .event-resources {
-            color: #00f2fe;
-            font-size: 0.85rem;
-            margin-top: 3px;
-        }
-        
-        @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-            }
-            
-            .panel {
-                min-width: 100%;
-            }
-            
-            .language-selector {
-                position: static;
-                justify-content: center;
-                margin-top: 15px;
-            }
-        }
-    </style>
-</head>
+    <title>玩家任务与成就系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link  rel="stylesheet" href="style.css" type="text/css"/>   
+</head>     
 <body>
-    <div class="container">
-        <header>
-            <h1 id="game-title">人生模拟器</h1>
-            <div class="language-selector">
-                <button class="lang-btn active" id="lang-zh">中文</button>
-                <button class="lang-btn" id="lang-en">English</button>
-            </div>
-            <div class="stage-indicator"><span id="stage-label">阶段</span>: <span id="stage">1</span></div>
-        </header>
-        
-        <div class="content">
-            <div class="panel">
-                <h2 id="actions-label">行动</h2>
-                <div class="action-list" id="action-list">
-                    <!-- 行动列表将动态生成 -->
-                </div>
+<div id="app">
+    <h1>{{title}}</h1>
+    <div style="clear:both;"></div>
+    <div id="container">
+        <div id="left-panel">
+            <div>
+            <span>{{isGameLevelCurrentTitle}}</span>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <button @click="solve">解决</button>
             </div>
             
-            <div class="panel">
-                <h2 id="resources-label">你的资源</h2>
-                <div class="resources" id="resources">
-                    <!-- 资源列表将动态生成 -->
-                </div>
-            </div>
         </div>
-        
-        <div class="events-panel">
-            <h2 id="events-label">事件记录</h2>
-            <div class="events-list" id="events-list">
-                <!-- 事件列表将动态生成 -->
+        <div id="right-panel">
+            <h3>玩家状态</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">希望(Hope):</span>
+                    <span class="status-value">{{Hope}}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">生命(Life):</span>
+                    <span class="status-value">{{Life}}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">身体(Body):</span>
+                    <span class="status-value">{{Body}}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">爱情(Love):</span>
+                    <span class="status-value">{{Love}}</span>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="notification" id="notification"></div>
-
-    <script>
-        // 游戏状态
-        const gameState = {
-            stage: 1,
-            resources: {},
-            activeProgresses: {},
-            // 动态动作列表
-            dynamicActions: {},
-            // 当前语言
-            currentLanguage: 'zh',
-            // 记录已完成的动作
-            completedActions: {},
-            // 事件记录
-            events: []
-        };
-
-        // 多语言文本
-        const languageTexts = {
-            zh: {
-                gameTitle: "人生模拟器",
-                stage: "阶段",
-                actions: "行动",
-                resources: "你的资源",
-                events: "事件记录",
-                solve: "解决",
-                inProgress: "进行中...",
-                notificationEnterStage: "进入阶段",
-                notificationGained: "获得了",
-                resourceNames: {
-                    Hope: "希望",
-                    Body: "身体",
-                    Life: "生命",
-                    Love: "爱",
-                    Knowledge: "知识",
-                    Memory: "记忆",
-                    Integrity: "正直",
-                    Experience: "经验",
-                    Loyalty: "忠诚",
-                    Friend: "朋友",
-                    Lover: "爱人",
-                    Job: "工作",
-                    BrokenHeart: "心碎"
-                },
-                actionsText: {
-                    // 第一阶段
-                    "solve-1": "空无一物",
-                    
-                    // 第二阶段
-                    "solve-2": "你尚未存在 +希望",
-                    
-                    // 第三阶段
-                    "solve-3": "你开始形成 +身体",
-                    
-                    // 第四阶段
-                    "solve-4": "你存在了 +生命",
-                    
-                    // 第五阶段
-                    "born": "你出生了 +爱",
-                    "learn-5": "你需要学习 +知识",
-                    
-                    // 第六阶段
-                    "toddler-cannot-afford": "你是个幼儿 [无法负担] -8知识 +正直",
-                    "toddler-can-afford": "你是个幼儿 -8知识 +正直",
-                    "play-6": "你需要玩耍 +记忆",
-                    "learn-6": "你需要学习 +知识",
-                    
-                    // 第七阶段
-                    "child-locked": "你是个孩子 [已锁定] -4经验 +忠诚",
-                    "child-cannot-afford": "你是个孩子 [无法负担] -4经验 +忠诚",
-                    "child-can-afford": "你是个孩子 -4经验 +忠诚",
-                    "friends-7": "你需要更多朋友 +朋友",
-                    "play-7": "你需要玩耍 +记忆",
-                    "learn-7": "你需要学习 +知识",
-                    "becomeTeenager-locked": "成长为青少年 [已锁定] -4忠诚",
-                    "becomeTeenager-can-afford": "成长为青少年 -4忠诚",
-                    "seeFriend-7": "你需要见朋友 +记忆",
-                    "moveOn-cannot-afford-7": "你需要移动到朋友处 [无法负担] -朋友 +经验",
-                    "moveOn-can-afford-7": "你需要移动到朋友处 -朋友 +经验",
-                    
-                    // 第八阶段 - Teenager
-                    "teenager-cannot-afford": "你是个青少年 [无法负担] -2心碎",
-                    "teenager-can-afford": "你是个青少年 -2心碎",
-                    "findLover": "你需要找到爱人 +爱人",
-                    "findJob": "你需要找到工作 +工作",
-                    "friends-8": "你需要更多朋友 +朋友",
-                    "seeFriend-8": "你需要见朋友 +记忆",
-                    "moveOn-cannot-afford-8": "你需要继续前进 [无法负担] -朋友 +经验",
-                    "moveOn-can-afford-8": "你需要继续前进 -朋友 +经验",
-                    "play-8": "你需要玩耍 +记忆",
-                    "learn-8": "你需要学习 +知识"
-                }
-            },
-            en: {
-                gameTitle: "Life Simulator",
-                stage: "Stage",
-                actions: "Actions",
-                resources: "Your Resources",
-                events: "Event Log",
-                solve: "Solve",
-                inProgress: "In Progress...",
-                notificationEnterStage: "Entered stage",
-                notificationGained: "Gained",
-                resourceNames: {
-                    Hope: "Hope",
-                    Body: "Body",
-                    Life: "Life",
-                    Love: "Love",
-                    Knowledge: "Knowledge",
-                    Memory: "Memory",
-                    Integrity: "Integrity",
-                    Experience: "Experience",
-                    Loyalty: "Loyalty",
-                    Friend: "Friend",
-                    Lover: "Lover",
-                    Job: "Job",
-                    BrokenHeart: "Broken Heart"
-                },
-                actionsText: {
-                    // 第一阶段
-                    "solve-1": "There is nothing",
-                    
-                    // 第二阶段
-                    "solve-2": "You are not +Hope",
-                    
-                    // 第三阶段
-                    "solve-3": "You are starting to become +Body",
-                    
-                    // 第四阶段
-                    "solve-4": "You are +Life",
-                    
-                    // 第五阶段
-                    "born": "You are born +Love",
-                    "learn-5": "You need to learn +Knowledge",
-                    
-                    // 第六阶段
-                    "toddler-cannot-afford": "You are a toddler [Can't afford] -8 Knowledge +Integrity",
-                    "toddler-can-afford": "You are a toddler -8 Knowledge +Integrity",
-                    "play-6": "You need to play +Memory",
-                    "learn-6": "You need to learn +Knowledge",
-                    
-                    // 第七阶段
-                    "child-locked": "You are a child [Locked] -4 Experience +Loyalty",
-                    "child-cannot-afford": "You are a child [Can't afford] -4 Experience +Loyalty",
-                    "child-can-afford": "You are a child -4 Experience +Loyalty",
-                    "friends-7": "You need more friends +Friend",
-                    "play-7": "You need to play +Memory",
-                    "learn-7": "You need to learn +Knowledge",
-                    "becomeTeenager-locked": "Become a teenager [Locked] -4 Loyalty",
-                    "becomeTeenager-can-afford": "Become a teenager -4 Loyalty",
-                    "seeFriend-7": "You need to see a friend +Memory",
-                    "moveOn-cannot-afford-7": "You need to move on to a friend [Can't afford] -Friend +Experience",
-                    "moveOn-can-afford-7": "You need to move on to a friend -Friend +Experience",
-                    
-                    // 第八阶段 - Teenager
-                    "teenager-cannot-afford": "You are a teenager [Can't afford] -2 Broken Heart",
-                    "teenager-can-afford": "You are a teenager -2 Broken Heart",
-                    "findLover": "You need to find a lover +Lover",
-                    "findJob": "You need to find a job +Job",
-                    "friends-8": "You need more friends +Friend",
-                    "seeFriend-8": "You need to see a friend +Memory",
-                    "moveOn-cannot-afford-8": "You need to move on [Can't afford] -Friend +Experience",
-                    "moveOn-can-afford-8": "You need to move on -Friend +Experience",
-                    "play-8": "You need to play +Memory",
-                    "learn-8": "You need to learn +Knowledge"
-                }
-            }
-        };
-
-        // 游戏阶段定义
-        const stages = [
-            // 第一阶段
-            {
-                actions: [
-                    {
-                        id: 'solve',
-                        descriptionKey: "solve-1",
-                        cost: {},
-                        reward: { Hope: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第二阶段
-            {
-                actions: [
-                    {
-                        id: 'solve',
-                        descriptionKey: "solve-2",
-                        cost: {},
-                        reward: { Hope: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第三阶段
-            {
-                actions: [
-                    {
-                        id: 'solve',
-                        descriptionKey: "solve-3",
-                        cost: {},
-                        reward: { Body: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第四阶段
-            {
-                actions: [
-                    {
-                        id: 'solve',
-                        descriptionKey: "solve-4",
-                        cost: {},
-                        reward: { Life: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第五阶段
-            {
-                actions: [
-                    {
-                        id: 'born',
-                        descriptionKey: "born",
-                        cost: {},
-                        reward: { Love: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'learn',
-                        descriptionKey: "learn-5",
-                        cost: {},
-                        reward: { Knowledge: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第六阶段
-            {
-                actions: [
-                    {
-                        id: 'toddler',
-                        descriptionKey: "toddler-cannot-afford",
-                        cost: { Knowledge: 8 },
-                        reward: { Integrity: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'play',
-                        descriptionKey: "play-6",
-                        cost: {},
-                        reward: { Memory: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'learn',
-                        descriptionKey: "learn-6",
-                        cost: {},
-                        reward: { Knowledge: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第七阶段
-            {
-                actions: [
-                    {
-                        id: 'child',
-                        descriptionKey: "child-locked",
-                        cost: { Experience: 4 },
-                        reward: { Loyalty: 1 },
-                        duration: 2000,
-                        // 添加解锁条件
-                        unlockCondition: { Integrity: 1 }
-                    },
-                    {
-                        id: 'friends',
-                        descriptionKey: "friends-7",
-                        cost: {},
-                        reward: { Friend: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'play',
-                        descriptionKey: "play-7",
-                        cost: {},
-                        reward: { Memory: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'learn',
-                        descriptionKey: "learn-7",
-                        cost: {},
-                        reward: { Knowledge: 1 },
-                        duration: 2000
-                    }
-                ]
-            },
-            // 第八阶段 - Teenager
-            {
-                actions: [
-                    {
-                        id: 'teenager',
-                        descriptionKey: "teenager-cannot-afford",
-                        cost: { BrokenHeart: 2 },
-                        reward: {},
-                        duration: 2000
-                    },
-                    {
-                        id: 'findLover',
-                        descriptionKey: "findLover",
-                        cost: {},
-                        reward: { Lover: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'findJob',
-                        descriptionKey: "findJob",
-                        cost: {},
-                        reward: { Job: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'friends',
-                        descriptionKey: "friends-8",
-                        cost: {},
-                        reward: { Friend: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'play',
-                        descriptionKey: "play-8",
-                        cost: {},
-                        reward: { Memory: 1 },
-                        duration: 2000
-                    },
-                    {
-                        id: 'learn',
-                        descriptionKey: "learn-8",
-                        cost: {},
-                        reward: { Knowledge: 1 },
-                        duration: 2000
-                    }
-                ]
-            }
-        ];
-
-        // 初始化游戏
-        function initGame() {
-            // 设置语言切换事件
-            document.getElementById('lang-zh').addEventListener('click', () => setLanguage('zh'));
-            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
-            
-            updateUI();
-        }
-
-        // 设置语言
-        function setLanguage(lang) {
-            gameState.currentLanguage = lang;
-            
-            // 更新语言按钮状态
-            document.getElementById('lang-zh').classList.toggle('active', lang === 'zh');
-            document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-            
-            // 更新UI文本
-            updateUIText();
-            
-            // 更新行动列表和资源显示
-            updateUI();
-        }
-
-        // 更新UI文本
-        function updateUIText() {
-            const lang = languageTexts[gameState.currentLanguage];
-            
-            // 更新标题和标签
-            document.getElementById('game-title').textContent = lang.gameTitle;
-            document.getElementById('stage-label').textContent = lang.stage;
-            document.getElementById('actions-label').textContent = lang.actions;
-            document.getElementById('resources-label').textContent = lang.resources;
-            document.getElementById('events-label').textContent = lang.events;
-        }
-
-        // 获取本地化文本
-        function getText(key) {
-            return languageTexts[gameState.currentLanguage][key] || key;
-        }
-
-        // 获取资源名称
-        function getResourceName(resource) {
-            return languageTexts[gameState.currentLanguage].resourceNames[resource] || resource;
-        }
-
-        // 获取行动描述
-        function getActionDescription(action, state) {
-            const lang = languageTexts[gameState.currentLanguage];
-            const key = state ? `${action.descriptionKey.split('-')[0]}-${state}` : action.descriptionKey;
-            return lang.actionsText[key] || action.descriptionKey;
-        }
-
-        // 更新UI
-        function updateUI() {
-            // 更新阶段指示器
-            document.getElementById('stage').textContent = gameState.stage;
-            
-            // 检查是否应该添加动态动作
-            checkDynamicActions();
-            
-            // 更新行动列表
-            updateActionList();
-            
-            // 更新资源显示
-            updateResources();
-            
-            // 更新事件记录
-            updateEvents();
-        }
-
-        // 检查是否应该添加动态动作
-        function checkDynamicActions() {
-            // 在第7阶段，当Loyalty>=4时，添加becomeTeenager行动
-            if (gameState.stage === 7 && (gameState.resources['Loyalty'] || 0) >= 4 && !gameState.dynamicActions['becomeTeenager']) {
-                gameState.dynamicActions['becomeTeenager'] = {
-                    id: 'becomeTeenager',
-                    descriptionKey: "becomeTeenager-locked",
-                    cost: { Loyalty: 4 },
-                    reward: {},
-                    duration: 2000,
-                    type: 'title'
-                };
-            }
-            
-            // 如果已经进入Teenager阶段，移除becomeTeenager行动
-            if (gameState.stage === 8 && gameState.dynamicActions['becomeTeenager']) {
-                delete gameState.dynamicActions['becomeTeenager'];
-            }
-            
-            // 在第7阶段，当Friend>=1时，添加seeFriend和moveOn行动
-            if (gameState.stage === 7 && (gameState.resources['Friend'] || 0) >= 1) {
-                if (!gameState.dynamicActions['seeFriend-7'] && !gameState.completedActions['seeFriend-7']) {
-                    gameState.dynamicActions['seeFriend-7'] = {
-                        id: 'seeFriend-7',
-                        descriptionKey: "seeFriend-7",
-                        cost: {},
-                        reward: { Memory: 1 },
-                        duration: 2000,
-                        type: 'child',
-                        parentAction: null // 不替代父动作
-                    };
-                }
-                
-                if (!gameState.dynamicActions['moveOn-7'] && !gameState.completedActions['moveOn-7']) {
-                    gameState.dynamicActions['moveOn-7'] = {
-                        id: 'moveOn-7',
-                        descriptionKey: "moveOn-cannot-afford-7",
-                        cost: { Friend: 1 },
-                        reward: { Experience: 1 },
-                        duration: 2000,
-                        type: 'child',
-                        parentAction: null // 不替代父动作
-                    };
-                }
-            }
-            
-            // 在第8阶段，当Friend>=1时，添加seeFriend和moveOn行动
-            if (gameState.stage === 8 && (gameState.resources['Friend'] || 0) >= 1) {
-                if (!gameState.dynamicActions['seeFriend-8'] && !gameState.completedActions['seeFriend-8']) {
-                    gameState.dynamicActions['seeFriend-8'] = {
-                        id: 'seeFriend-8',
-                        descriptionKey: "seeFriend-8",
-                        cost: {},
-                        reward: { Memory: 1 },
-                        duration: 2000,
-                        type: 'child',
-                        parentAction: 'friends'
-                    };
-                }
-                
-                if (!gameState.dynamicActions['moveOn-8'] && !gameState.completedActions['moveOn-8']) {
-                    gameState.dynamicActions['moveOn-8'] = {
-                        id: 'moveOn-8',
-                        descriptionKey: "moveOn-cannot-afford-8",
-                        cost: { Friend: 1 },
-                        reward: { Experience: 1 },
-                        duration: 2000,
-                        type: 'child',
-                        parentAction: 'friends'
-                    };
-                }
-            }
-            
-            // 当Friend资源为0时，移除seeFriend和moveOn行动
-            if ((gameState.resources['Friend'] || 0) === 0) {
-                if (gameState.dynamicActions['seeFriend-7']) {
-                    gameState.completedActions['seeFriend-7'] = true;
-                    delete gameState.dynamicActions['seeFriend-7'];
-                }
-                if (gameState.dynamicActions['moveOn-7']) {
-                    gameState.completedActions['moveOn-7'] = true;
-                    delete gameState.dynamicActions['moveOn-7'];
-                }
-                if (gameState.dynamicActions['seeFriend-8']) {
-                    gameState.completedActions['seeFriend-8'] = true;
-                    delete gameState.dynamicActions['seeFriend-8'];
-                }
-                if (gameState.dynamicActions['moveOn-8']) {
-                    gameState.completedActions['moveOn-8'] = true;
-                    delete gameState.dynamicActions['moveOn-8'];
-                }
-            }
-        }
-
-        // 更新行动列表
-        function updateActionList() {
-            const actionList = document.getElementById('action-list');
-            actionList.innerHTML = '';
-            
-            const currentStage = stages[gameState.stage - 1];
-            
-            // 首先添加标题动作
-            Object.values(gameState.dynamicActions).forEach(action => {
-                if (action.type === 'title') {
-                    addActionToList(action, actionList);
-                }
-            });
-            
-            // 然后添加固定动作
-            currentStage.actions.forEach(action => {
-                // 检查是否是父动作且被子动作替代
-                const hasChildAction = Object.values(gameState.dynamicActions).some(
-                    da => da.type === 'child' && da.parentAction === action.id
-                );
-                
-                if (!hasChildAction) {
-                    addActionToList(action, actionList);
-                }
-            });
-            
-            // 最后添加子动作
-            Object.values(gameState.dynamicActions).forEach(action => {
-                if (action.type === 'child') {
-                    addActionToList(action, actionList);
-                }
-            });
-        }
-
-        // 将行动添加到行动列表
-        function addActionToList(action, actionList) {
-            const actionItem = document.createElement('div');
-            actionItem.className = 'action-item';
-            
-            // 检查是否可以承担成本
-            const canAfford = canAffordAction(action);
-            
-            // 检查是否满足解锁条件
-            const isUnlocked = isActionUnlocked(action);
-            
-            // 获取行动描述
-            let state = null;
-            
-            // 特殊处理第六阶段的toddler行动
-            if (gameState.stage === 6 && action.id === 'toddler') {
-                if (canAfford) {
-                    state = "can-afford";
-                } else {
-                    state = "cannot-afford";
-                }
-            }
-            
-            // 特殊处理第七阶段的child行动
-            if (gameState.stage === 7 && action.id === 'child') {
-                if (isUnlocked) {
-                    if (canAfford) {
-                        state = "can-afford";
-                    } else {
-                        state = "cannot-afford";
-                    }
-                } else {
-                    state = "locked";
-                }
-            }
-            
-            // 特殊处理becomeTeenager行动
-            if (action.id === 'becomeTeenager') {
-                if (canAfford) {
-                    state = "can-afford";
-                } else {
-                    state = "locked";
-                }
-            }
-            
-            // 特殊处理第八阶段的teenager行动
-            if (gameState.stage === 8 && action.id === 'teenager') {
-                if (canAfford) {
-                    state = "can-afford";
-                } else {
-                    state = "cannot-afford";
-                }
-            }
-            
-            // 特殊处理moveOn行动
-            if (action.id.includes('moveOn')) {
-                if (canAfford) {
-                    state = "can-afford";
-                } else {
-                    state = "cannot-afford";
-                }
-            }
-            
-            const description = getActionDescription(action, state);
-            
-            // 确定按钮是否可用
-            const isEnabled = isUnlocked && canAfford && !gameState.activeProgresses[action.id];
-            
-            actionItem.innerHTML = `
-                <div class="action-description">${description}</div>
-                <button class="btn" ${!isEnabled ? 'disabled' : ''}>
-                    ${gameState.activeProgresses[action.id] ? getText('inProgress') : getText('solve')}
-                </button>
-                <div class="progress-container" style="${gameState.activeProgresses[action.id] ? '' : 'display: none'}">
-                    <div class="progress-bar" id="progress-${action.id}"></div>
-                </div>
-            `;
-            
-            // 添加事件监听器
-            const button = actionItem.querySelector('.btn');
-            if (isEnabled) {
-                button.addEventListener('click', () => startAction(action));
-            }
-            
-            actionList.appendChild(actionItem);
-        }
-
-        // 检查行动是否满足解锁条件
-        function isActionUnlocked(action) {
-            if (!action.unlockCondition) {
-                return true; // 没有解锁条件，默认解锁
-            }
-            
-            for (const [resource, amount] of Object.entries(action.unlockCondition)) {
-                if ((gameState.resources[resource] || 0) < amount) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // 检查是否可以承担行动成本
-        function canAffordAction(action) {
-            for (const [resource, amount] of Object.entries(action.cost)) {
-                if ((gameState.resources[resource] || 0) < amount) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // 更新资源显示
-        function updateResources() {
-            const resourcesContainer = document.getElementById('resources');
-            resourcesContainer.innerHTML = '';
-            
-            // 按照特定顺序显示资源
-            const resourceOrder = [
-                'Hope', 'Body', 'Life', 'Love', 'Knowledge', 
-                'Memory', 'Integrity', 'Experience', 'Loyalty', 'Friend',
-                'Lover', 'Job', 'BrokenHeart'
-            ];
-            
-            resourceOrder.forEach(resource => {
-                if (gameState.resources[resource] > 0) {
-                    const resourceItem = document.createElement('div');
-                    resourceItem.className = 'resource-item';
-                    resourceItem.innerHTML = `
-                        <div class="resource-name">${getResourceName(resource)}</div>
-                        <div class="resource-value">${gameState.resources[resource]}</div>
-                    `;
-                    resourcesContainer.appendChild(resourceItem);
-                }
-            });
-        }
-
-        // 更新事件记录
-        function updateEvents() {
-            const eventsList = document.getElementById('events-list');
-            eventsList.innerHTML = '';
-            
-            // 显示最近的事件，最新的在最上面
-            gameState.events.slice().reverse().forEach(event => {
-                const eventItem = document.createElement('div');
-                eventItem.className = 'event-item';
-                
-                const costText = Object.keys(event.cost).length > 0 ? 
-                    `消耗: ${Object.entries(event.cost).map(([resource, amount]) => `${getResourceName(resource)} ${amount}`).join(', ')}` : '';
-                
-                const rewardText = Object.keys(event.reward).length > 0 ? 
-                    `获得: ${Object.entries(event.reward).map(([resource, amount]) => `${getResourceName(resource)} ${amount}`).join(', ')}` : '';
-                
-                const resourcesText = [costText, rewardText].filter(text => text).join(' | ');
-                
-                eventItem.innerHTML = `
-                    <div class="event-time">${event.time}</div>
-                    <div class="event-action">${event.action}</div>
-                    <div class="event-resources">${resourcesText}</div>
-                `;
-                
-                eventsList.appendChild(eventItem);
-            });
-        }
-
-        // 添加事件记录
-        function addEvent(action) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            
-            // 获取动作描述
-            const description = getActionDescription(action);
-            
-            // 创建事件记录
-            const event = {
-                time: timeString,
-                action: description,
-                cost: {...action.cost},
-                reward: {...action.reward}
-            };
-            
-            // 添加到事件列表
-            gameState.events.push(event);
-            
-            // 限制事件记录数量，防止过多
-            if (gameState.events.length > 50) {
-                gameState.events.shift();
-            }
-            
-            // 更新事件显示
-            updateEvents();
-        }
-
-        // 开始行动
-        function startAction(action) {
-            // 标记行动为进行中
-            gameState.activeProgresses[action.id] = true;
-            
-            // 更新UI
-            updateUI();
-            
-            // 获取进度条元素
-            const progressBar = document.getElementById(`progress-${action.id}`);
-            const progressContainer = progressBar.parentElement;
-            progressContainer.style.display = 'block';
-            
-            // 模拟进度
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 1;
-                progressBar.style.width = `${progress}%`;
-                
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    completeAction(action);
-                }
-            }, action.duration / 100);
-        }
-
-        // 完成行动
-        function completeAction(action) {
-            // 移除进行中标记
-            delete gameState.activeProgresses[action.id];
-            
-            // 扣除成本
-            for (const [resource, amount] of Object.entries(action.cost)) {
-                gameState.resources[resource] = (gameState.resources[resource] || 0) - amount;
-            }
-            
-            // 添加奖励
-            for (const [resource, amount] of Object.entries(action.reward)) {
-                gameState.resources[resource] = (gameState.resources[resource] || 0) + amount;
-            }
-            
-            // 特殊处理becomeTeenager行动 - 进入Teenager阶段
-            if (action.id === 'becomeTeenager') {
-                gameState.stage = 8;
-                gameState.completedActions['becomeTeenager'] = true;
-                showNotification(`${getText('notificationEnterStage')} ${gameState.stage}`);
-            }
-            
-            // 标记子动作为已完成
-            if (action.type === 'child') {
-                gameState.completedActions[action.id] = true;
-            }
-            
-            // 添加事件记录
-            addEvent(action);
-            
-            // 显示通知
-            if (Object.keys(action.reward).length > 0) {
-                const rewardNames = Object.keys(action.reward).map(resource => getResourceName(resource));
-                showNotification(`${getText('notificationGained')}: ${rewardNames.join(', ')}`);
-            }
-            
-            // 检查是否需要进入下一阶段
-            checkStageProgression(action);
-            
-            // 更新UI
-            updateUI();
-        }
-
-        // 检查阶段进展
-        function checkStageProgression(action) {
-            // 检查是否满足进入下一阶段的条件
-            if (gameState.stage < stages.length) {
-                // 对于第六阶段，只有完成toddler行动后才进入下一阶段
-                if (gameState.stage === 6 && action.id === 'toddler') {
-                    gameState.stage++;
-                    showNotification(`${getText('notificationEnterStage')} ${gameState.stage}`);
-                } 
-                // 对于其他阶段，完成所有行动后进入下一阶段
-                else if (gameState.stage !== 6 && gameState.stage !== 7 && Object.keys(gameState.activeProgresses).length === 0) {
-                    gameState.stage++;
-                    showNotification(`${getText('notificationEnterStage')} ${gameState.stage}`);
-                }
-            }
-        }
-
-        // 显示通知
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // 初始化游戏
-        window.onload = initGame;
-    </script>
+</div>
 </body>
+<script>
+    Nothing_level={
+        "count": 4,
+        "content":{
+            "1": {
+                "level": 1,
+                "title":"空无一物",
+                "resourse":"Hope",
+                "operation":"+0"
+            },
+            "2": {
+                "level": 2, 
+                "title":"你尚未存在 +希望",
+                "resourse":"Hope",
+                "operation":"+1"
+            },
+            "3": {
+                "level": 3,
+                "title":"你开始形成 +身体",
+                "resourse":"Body",
+                "operation":"+1"      
+            },
+            "4": {
+                "level": 4,
+                "title":"你存在了 +生命",
+                "resourse":"Life",
+                "operation":"+1"
+            }
+        }
+    }
+
+    solve_str = "<button id='solve' @click='solve'>解决</button>";
+    const app = Vue.createApp({ 
+        data() {
+            return {    
+                title: 'Drowning',
+                gameTime: 0,
+                playerHealth: 100,
+                playerEnergy: 100,
+                isGameLevel: Nothing_level,
+                isGameLevelCount:0,
+                isGameLevelCurrent:1,
+                isGameLevelCurrentTitle:"",
+                isGameRunning: false,
+                Hope: 0,
+                Life: 0,
+                Body: 0,
+                Love: 0
+            }   
+        },
+        methods: {
+            judgment() {
+                resourse = this.isGameLevel.content[this.isGameLevelCurrent.toString()].resourse
+                console.log(resourse)
+                operation = this.isGameLevel.content[this.isGameLevelCurrent.toString()].operation
+                eval("this."+ resourse + "= " +"this." +resourse +operation) 
+                this.isGameLevelCurrent++;
+                //this.Hope += 1
+                
+            },
+            solve() {
+                //alert('解决')
+                this.judgment()
+                this.gameTick()
+            },
+            gameTick() {
+                // 游戏时间递增
+                this.gameTime++;
+                this.isGameLevelCount = this.isGameLevel.count
+                this.isGameLevelCurrentTitle = this.isGameLevel.content[this.isGameLevelCurrent.toString()].title
+                
+                //document.getElementById("left-panel").innerHTML = doStr
+                console.log(this.gameTime+" "+this.isGameLevelCurrentTitle)
+            }
+        },
+        mounted() {
+            this.gameTick()
+        },
+        beforeUnmount() {
+        }
+    })
+    app.mount('#app')
+</script>
 </html>
