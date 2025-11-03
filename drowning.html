@@ -53,13 +53,27 @@
                     <span class="status-label">爱情(Love):</span>
                     <span class="status-value">{{Love}}</span>
                 </div>
+                <div v-for = "item in achievement">
+                    <div class="status-item">   
+                        <span class="status-label">{{item.zh}}({{item.title}}):</span>   
+                        <span class="status-value">{{item.value}}</span>
+                    </div>
+                </div>  
             </div>
         </div>
     </div>
 </div>
 </body>
 <script>
-    solve_str = "<button id='solve' @click='solve'>解决</button>";
+    achievement = [{"title":"Hope","zh":"希望","value": 0},
+    {"title":"Life","zh":"生命","value": 0},
+    {"title":"Body","zh":"身体","value": 0},
+    {"title":"Love","zh":"爱情","value": 0},
+    {"title":"Memory","zh":"记忆","value": 0},
+    {"title":"Knowledge","zh":"知识","value": 0},
+    {"title":"Friend","zh":"友情","value": 0},    
+    {"title":"Experience","zh":"经验","value": 0},    
+    {"title":"Loyalty","zh":"忠诚","value":0}]
     const app = Vue.createApp({ 
         data() {
             return {    
@@ -72,6 +86,8 @@
                 isGameLevelCurrent:1,
                 isGameLevelCurrentTitle:"",
                 isGameRunning: false,
+                achievement:achievement,
+
                 Hope: 0,
                 Life: 0,
                 Body: 0,
