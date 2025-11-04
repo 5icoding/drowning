@@ -16,25 +16,29 @@
     <div style="clear:both;"></div>
     <div id="container">
         <div id="left-panel">
-            <div>
-            <span>{{isGameLevelCurrentTitle}}</span>
-            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-            <button @click="solve">解决</button>
-            </div>
-            <!-- <div v-if ="isGameLevelCurrentTitle == 'Nothing'">
-                <div>   
-                    
+            <h3>当前阶段: {{currentStageTitle}}</h3>
+            
+            <!-- 主线任务 -->
+            <div v-if="currentTitleEvent">
+                <h4>主线任务</h4>
+                <div class="event-item">
+                    <span>{{currentTitleEvent.title}}</span>
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <button @click="solveTitleEvent">解决</button>
                 </div>
-            </div>   -->
-            <!-- <div v-for = "item in isGameLevel.content">
-                <div>   
-                    <div v-if ="item.type == 'titleTask'">
-                        <span>{{item.title}}</span> 
-                        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                        <button @click="solve">解决</button>    
-                 </div>
-            </div>   --> 
+            </div>
+            
+            <!-- 支线任务 -->
+            <div v-if="subEvents.length > 0">
+                <h4>支线任务</h4>
+                <div v-for="event in subEvents" :key="event.id" class="event-item">
+                    <span>{{event.title}}</span>
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <button @click="solveSubEvent(event)">解决</button>
+                </div>
+            </div>
         </div>
+
         <div id="right-panel">
             <h3>玩家状态</h3>
             <div class="status-grid">
@@ -55,48 +59,130 @@
         data() {
             return {    
                 title: 'Drowning',
-                gameTime: 0,
-                playerHealth: 100,
-                playerEnergy: 100,
-                isGameLevel: Nothing_level,
-                isGameLevelCount:0,
-                isGameLevelCurrent:1,
-                isGameLevelCurrentTitle:"",
-                isGameRunning: false,
-                achievement:achievement,
+                achievement: achievement,
+                currentStage: 0,
+                currentStageTitle: '',
+                currentTitleEvent: null,
+                subEvents: [],
+                eventHistory: [],
+                cycleCount: 0
             }   
         },
         methods: {
+            gameTick() {
+                // 获取当前阶段数据
+                const stage = stages[this.currentStage.toString()]
+                this.currentStageTitle = stage.title
+                
+                // 获取当前阶段的所有事件
+                const allEvents = stage.events.map(eventId => events[eventId.toString()])
+                
+                // 分离主线任务和支线任务
+                this.currentTitleEvent = allEvents.find(event => 
+                    event && event.id >= 10000 && event.id < 20000 && event.solve === "Yes"
+                )
+                
+                this.subEvents = allEvents.filter(event => 
+                    event && (event.id >= 20000 || event.id >= 30000) && event.solve === "Yes"
+                )
+                
+                console.log('当前阶段:', stage.title)
+                console.log('主线任务:', this.currentTitleEvent)
+                console.log('支线任务:', this.subEvents)
+            },
+            
             judgment() {
-                resourse = this.isGameLevel.data[this.isGameLevelCurrent.toString()].resourse
-                console.log(resourse)
-                operation = this.isGameLevel.data[this.isGameLevelCurrent.toString()].operation
-                console.log(operation)
-                this.achievement.forEach(item => {
-                    if(item.title == resourse) {
-                        item.value = eval(item.value + operation)
-                    }
-                })
-                //eval("this."+ resourse + "= " +"this." +resourse +operation) 
-                this.isGameLevelCurrent++;
-                if(this.isGameLevelCurrent > this.isGameLevel.count) {
-                    this.isGameLevelCurrent = 1
+                // 应用事件效果到成就系统
+                if (this.currentTitleEvent && this.currentTitleEvent.effect) {
+                    this.applyEffect(this.currentTitleEvent.effect)
                 }
                 
-            },
-            solve() {
-                //alert('解决')
-                this.judgment()
-                this.gameTick()
-            },
-            gameTick() {
-                // 游戏时间递增
-                this.gameTime++;
-                this.isGameLevelCount = this.isGameLevel.count
-                this.isGameLevelCurrentTitle = this.isGameLevel.data[this.isGameLevelCurrent.toString()].title
+                // 推进游戏阶段
+                if (this.currentStage < 14) {
+                    this.currentStage++
+                } else {
+                    // 到达最后阶段，开始新的循环
+                    this.startNewCycle()
+                    return // 直接返回，不执行后续逻辑
+                }
                 
-                //document.getElementById("left-panel").innerHTML = doStr
-                console.log("gameTick,"+this.gameTime+" "+this.isGameLevelCurrentTitle)
+                // 记录事件历史
+                if (this.currentTitleEvent) {
+                    this.eventHistory.push({
+                        stage: this.currentStage,
+                        event: this.currentTitleEvent
+                    })
+                }
+                
+                console.log('游戏阶段推进到:', this.currentStage)
+            },
+            
+            startNewCycle() {
+                // 增加循环计数
+                this.cycleCount++
+                
+                // 重置游戏阶段到0
+                this.currentStage = 0
+                
+                // 保留成就数据，但可以添加一些循环奖励
+                this.applyCycleRewards()
+                
+                // 清空事件历史或保留为循环记录
+                this.eventHistory = []
+                
+                // 更新游戏标题显示循环次数
+                this.title = `Drowning - 第${this.cycleCount}次循环`
+                
+                // 重新加载当前阶段数据
+                this.gameTick()
+                
+                console.log('开始新的游戏循环!')
+                alert('你已完成一次生命循环！开始新的轮回...')
+            },
+            
+            applyCycleRewards() {
+                // 根据成就值给予循环奖励
+                const rewards = {
+                    'Hope': 1,      // 每次循环增加希望
+                    'Experience': 2, // 每次循环增加经验
+                    'Memory': 1      // 每次循环增加记忆
+                }
+                
+                for (const [key, value] of Object.entries(rewards)) {
+                    const achievementItem = this.achievement.find(item => item.title === key)
+                    if (achievementItem) {
+                        achievementItem.value += value
+                        console.log(`循环奖励: ${key} +${value}`)
+                    }
+                }
+            },
+            
+            applyEffect(effect) {
+                // 将事件效果应用到成就系统
+                for (const [key, value] of Object.entries(effect)) {
+                    const achievementItem = this.achievement.find(item => item.title === key)
+                    if (achievementItem) {
+                        achievementItem.value += value
+                        console.log(`应用效果: ${key} ${value > 0 ? '+' : ''}${value}`)
+                    }
+                }
+            },
+            
+            solveTitleEvent() {
+                if (this.currentTitleEvent) {
+                    this.judgment()
+                    this.gameTick()
+                }
+            },
+            
+            solveSubEvent(event) {
+                // 应用支线事件效果
+                if (event && event.effect) {
+                    this.applyEffect(event.effect)
+                }
+                
+                // 支线任务可以重复解决，不移除事件
+                console.log('解决支线任务:', event.title)
             }
         },
         mounted() {
