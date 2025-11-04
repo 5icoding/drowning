@@ -3,9 +3,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>玩家任务与成就系统</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="vue.js"></script>
     <link  rel="stylesheet" href="style.css" type="text/css"/> 
     <script src="data.js"></script> 
+    <script src="data/achievement.js"></script>
+    <script src="data/event.js"></script>
+    <script src="data/stage.js"></script>
 </head>     
 <body>
 <div id="app">
@@ -30,29 +33,11 @@
                         <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                         <button @click="solve">解决</button>    
                  </div>
-            </div>   -->
-
-            
+            </div>   --> 
         </div>
         <div id="right-panel">
             <h3>玩家状态</h3>
             <div class="status-grid">
-                <div class="status-item">
-                    <span class="status-label">希望(Hope):</span>
-                    <span class="status-value">{{Hope}}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">生命(Life):</span>
-                    <span class="status-value">{{Life}}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">身体(Body):</span>
-                    <span class="status-value">{{Body}}</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">爱情(Love):</span>
-                    <span class="status-value">{{Love}}</span>
-                </div>
                 <div v-for = "item in achievement">
                     <div class="status-item">   
                         <span class="status-label">{{item.zh}}({{item.title}}):</span>   
@@ -65,15 +50,7 @@
 </div>
 </body>
 <script>
-    achievement = [{"title":"Hope","zh":"希望","value": 0},
-    {"title":"Life","zh":"生命","value": 0},
-    {"title":"Body","zh":"身体","value": 0},
-    {"title":"Love","zh":"爱情","value": 0},
-    {"title":"Memory","zh":"记忆","value": 0},
-    {"title":"Knowledge","zh":"知识","value": 0},
-    {"title":"Friend","zh":"友情","value": 0},    
-    {"title":"Experience","zh":"经验","value": 0},    
-    {"title":"Loyalty","zh":"忠诚","value":0}]
+
     const app = Vue.createApp({ 
         data() {
             return {    
@@ -87,11 +64,6 @@
                 isGameLevelCurrentTitle:"",
                 isGameRunning: false,
                 achievement:achievement,
-
-                Hope: 0,
-                Life: 0,
-                Body: 0,
-                Love: 0
             }   
         },
         methods: {
@@ -99,7 +71,13 @@
                 resourse = this.isGameLevel.data[this.isGameLevelCurrent.toString()].resourse
                 console.log(resourse)
                 operation = this.isGameLevel.data[this.isGameLevelCurrent.toString()].operation
-                eval("this."+ resourse + "= " +"this." +resourse +operation) 
+                console.log(operation)
+                this.achievement.forEach(item => {
+                    if(item.title == resourse) {
+                        item.value = eval(item.value + operation)
+                    }
+                })
+                //eval("this."+ resourse + "= " +"this." +resourse +operation) 
                 this.isGameLevelCurrent++;
                 if(this.isGameLevelCurrent > this.isGameLevel.count) {
                     this.isGameLevelCurrent = 1
@@ -118,7 +96,7 @@
                 this.isGameLevelCurrentTitle = this.isGameLevel.data[this.isGameLevelCurrent.toString()].title
                 
                 //document.getElementById("left-panel").innerHTML = doStr
-                console.log(this.gameTime+" "+this.isGameLevelCurrentTitle)
+                console.log("gameTick,"+this.gameTime+" "+this.isGameLevelCurrentTitle)
             }
         },
         mounted() {
